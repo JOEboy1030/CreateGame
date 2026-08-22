@@ -18,7 +18,6 @@ public class Main {
             }
 
         }
-        System.out.println("ゲームを" + hand + "で開催します\n");
         GameController gameController = new GameController(hand);
         gameController.gameStart();
 
