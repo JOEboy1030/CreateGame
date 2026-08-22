@@ -1,1 +1,5 @@
+com/game/NetworkManager.class
+com/game/GameController.class
 com/game/Main.class
+com/game/RhymrJudge.class
+com/game/Player.class
