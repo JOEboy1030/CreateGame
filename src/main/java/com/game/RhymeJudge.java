@@ -1,5 +1,5 @@
 package com.game;
 
-public class RhymrJudge {
+public class RhymeJudge {
     
 }
