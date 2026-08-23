@@ -7,7 +7,6 @@ com\game\Main.class
 com\game\JmDictImporter$ReadingData.class
 com\game\JapaneseTextNormalizer.class
 com\game\GameController.class
-com\game\RhymrJudge.class
 com\game\DictionaryRepository.class
 com\game\JmDictImporter$EntryData.class
 com\game\DatabaseManager.class

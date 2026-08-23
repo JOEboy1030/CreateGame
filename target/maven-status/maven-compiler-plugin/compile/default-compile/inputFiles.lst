@@ -9,5 +9,11 @@ D:\CreateGame\src\main\java\com\game\JmDictImportMain.java
 D:\CreateGame\src\main\java\com\game\Main.java
 D:\CreateGame\src\main\java\com\game\NetworkManager.java
 D:\CreateGame\src\main\java\com\game\Player.java
-D:\CreateGame\src\main\java\com\game\RhymrJudge.java
+D:\CreateGame\src\main\java\com\game\RhymeAnswer.java
+D:\CreateGame\src\main\java\com\game\RhymeJudge.java
+D:\CreateGame\src\main\java\com\game\RhymeResult.java
+D:\CreateGame\src\main\java\com\game\RhymeResultCalculator.java
+D:\CreateGame\src\main\java\com\game\SuffixVowelMatcher.java
+D:\CreateGame\src\main\java\com\game\VowelSequenceConverter.java
+D:\CreateGame\src\main\java\com\game\WordGenerator.java
 D:\CreateGame\src\main\java\com\game\WordValidator.java
