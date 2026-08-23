@@ -7,6 +7,7 @@ public class GameController {
 
     private int hand;
     private Random random;
+    private WordGenerator wordGenerator;
     // 小さい文字や濁点追加するか検討
     private static final String[] HIRAGANA = {
             "あ", "い", "う", "え", "お",
@@ -24,6 +25,7 @@ public class GameController {
     public GameController(int hand) {
         this.hand = hand;
         this.random = new SecureRandom();
+        this.wordGenerator = new WordGenerator();
 
     }
 
@@ -45,6 +47,9 @@ public class GameController {
             int index = random.nextInt(HIRAGANA.length);
             System.out.print(HIRAGANA[index] + ",");
         }
+        String word = wordGenerator.getRandomWord();
+
+        System.out.println("\n\nお題：「" + word + "」です。手札から韻を考えてください。");
 
     }
 
