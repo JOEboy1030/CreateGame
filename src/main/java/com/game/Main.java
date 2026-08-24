@@ -30,5 +30,7 @@ public class Main {
         GameController gameController = new GameController(hand);
         gameController.gameStart(mode);
 
+        sc.close();
+
     }
 }
