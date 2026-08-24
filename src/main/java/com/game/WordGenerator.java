@@ -9,7 +9,7 @@ import java.util.zip.GZIPInputStream;
 
 public class WordGenerator {
 
-    private static final String WORD_FILE = "/home/joe1030/CreateGame/data/JMdict_e.gz";
+    private static final Path WORD_FILE = Path.of("data","JMdict_e.gz");
 
     private final RandomGenerator random;
 
@@ -22,7 +22,7 @@ public class WordGenerator {
         List<String> words = new ArrayList<>();
 
         try (
-                InputStream inputStream = Files.newInputStream(Path.of(WORD_FILE));
+                InputStream inputStream = Files.newInputStream(WORD_FILE);
 
                 GZIPInputStream gzipInputStream = new GZIPInputStream(inputStream);
 
