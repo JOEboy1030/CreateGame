@@ -22,22 +22,18 @@ public class OnlineGameServer {
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
 
-            Socket player1 = serverSocket.accept();
-
-            System.out.println("プレイヤー1が接続しました。");
-
+            // 友達（プレイヤー2）の接続を待つ
             Socket player2 = serverSocket.accept();
 
             System.out.println("プレイヤー2が接続しました。");
-
             System.out.println("2人そろいました！");
             System.out.println("ゲームを開始します。");
 
+            // サーバー側の自分をプレイヤー1として扱う
             OnlineGameSession session =
-                    new OnlineGameSession(hand, player1, player2);
+                    new OnlineGameSession(hand, player2);
 
-            session.start();
-
+            session.start(); 
         } catch (IOException e) {
             System.out.println("サーバーエラーが発生しました。");
             e.printStackTrace();

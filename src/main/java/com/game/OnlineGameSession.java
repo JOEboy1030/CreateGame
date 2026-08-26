@@ -10,7 +10,7 @@ public class OnlineGameSession {
 
     private final int hand;
 
-    private final Socket player1;
+    // 友達（プレイヤー2）のSocketだけ持つ
     private final Socket player2;
 
     private final Random random = new SecureRandom();
@@ -32,23 +32,15 @@ public class OnlineGameSession {
 
     public OnlineGameSession(
             int hand,
-            Socket player1,
             Socket player2
     ) {
         this.hand = hand;
-        this.player1 = player1;
         this.player2 = player2;
     }
 
     public void start() {
 
         try {
-
-            PrintWriter out1 =
-                    new PrintWriter(
-                            player1.getOutputStream(),
-                            true
-                    );
 
             PrintWriter out2 =
                     new PrintWriter(
@@ -60,16 +52,34 @@ public class OnlineGameSession {
 
             String cards = createHand();
 
-            out1.println("=== ゲーム開始 ===");
-            out1.println("お題：" + word);
-            out1.println("あなたの手札：" + cards);
+            // =========================
+            // プレイヤー1（自分）
+            // =========================
+
+            System.out.println("=== ゲーム開始 ===");
+            System.out.println("お題：" + word);
+            System.out.println("あなたの手札：" + cards);
+
+            // =========================
+            // プレイヤー2（友達）
+            // =========================
 
             out2.println("=== ゲーム開始 ===");
             out2.println("お題：" + word);
             out2.println("あなたの手札：" + cards);
 
         } catch (IOException e) {
+
+            System.out.println("通信エラーが発生しました。");
             e.printStackTrace();
+
+        } finally {
+
+            try {
+                player2.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

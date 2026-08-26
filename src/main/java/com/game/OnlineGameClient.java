@@ -7,8 +7,6 @@ import java.net.Socket;
 
 public class OnlineGameClient {
 
-    private static final int PORT = 5000;
-
     private final String host;
     private final int port;
 
