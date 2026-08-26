@@ -34,10 +34,20 @@ public class OnlineGame {
 
         } else if (mode == 2) {
 
-            System.out.print("サーバーのIPアドレスを入力してください: ");
+            System.out.print("接続先ホスト：");
             String host = scanner.nextLine();
+            System.out.print("接続先ポート：");
 
-            OnlineGameClient client = new OnlineGameClient(host);
+            int port;
+
+            try {
+                port = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("ポート番号が不正です。");
+                return;
+            }
+
+            OnlineGameClient client = new OnlineGameClient(host, port);
             client.start();
 
         } else {
