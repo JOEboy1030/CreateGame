@@ -33,15 +33,21 @@ public class GameController {
 
         if (mode == 1) {
             System.out.println("1人でゲームを開始します。\n");
-            gameMode(mode);
+            gameModeSingle(mode);
+
+        } else if (mode == 2) {
+            System.out.println("オンライン対戦モードを開始します。\n");
+
+            OnlineGame onlineGame = new OnlineGame(hand);
+            onlineGame.start();
+
         } else {
-            System.out.println("でゲームを開始します。\n");
-            System.out.println("まだ開発中です\n");
+            System.out.println("ゲームモードが不正です。");
         }
 
     }
 
-    public void gameMode(int mode) {
+    public void gameModeSingle(int mode) {
         System.out.println("手札を配ります。\n");
         for (int i = 0; i < hand; i++) {
             int index = random.nextInt(HIRAGANA.length);
