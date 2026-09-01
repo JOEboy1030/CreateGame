@@ -1,61 +1,31 @@
 package com.game;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.util.*;
-import java.util.random.RandomGenerator;
-import java.util.zip.GZIPInputStream;
+import java.sql.SQLException;
+import java.util.Optional;
 
 public class WordGenerator {
 
-    private static final Path WORD_FILE = Path.of("data","JMdict_e.gz");
-
-    private final RandomGenerator random;
+    private final DictionaryRepository repository;
 
     public WordGenerator() {
-        random = RandomGenerator.getDefault();
+        this.repository = new DictionaryRepository();
     }
 
     public String getRandomWord() {
+        try {
+            Optional<DictionaryWord> dictionaryWord = repository.findRandom();
 
-        List<String> words = new ArrayList<>();
-
-        try (
-                InputStream inputStream = Files.newInputStream(WORD_FILE);
-
-                GZIPInputStream gzipInputStream = new GZIPInputStream(inputStream);
-
-                BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(
-                                gzipInputStream,
-                                StandardCharsets.UTF_8))) {
-
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-
-                // とりあえず単語っぽいものを探す
-                if (line.contains("<keb>")) {
-
-                    int start = line.indexOf("<keb>") + 5;
-                    int end = line.indexOf("</keb>");
-
-                    if (start >= 5 && end > start) {
-                        String word = line.substring(start, end);
-                        words.add(word);
-                    }
-                }
+            if (dictionaryWord.isEmpty()) {
+                throw new RuntimeException(
+                        "辞書データベースに単語が登録されていません。");
             }
 
-        } catch (IOException e) {
-            throw new RuntimeException("辞書ファイルの読み込みに失敗しました", e);
-        }
+            return dictionaryWord.get().surface();
 
-        if (words.isEmpty()) {
-            throw new RuntimeException("単語が見つかりませんでした");
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "辞書データベースの参照に失敗しました。",
+                    e);
         }
-
-        return words.get(random.nextInt(words.size()));
     }
 }

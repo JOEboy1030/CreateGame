@@ -1,62 +1,210 @@
 package com.game;
 
-import java.security.SecureRandom;
-import java.util.Random;
+import java.sql.SQLException;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Scanner;
 
 public class GameController {
 
-    private int hand;
-    private Random random;
-    private WordGenerator wordGenerator;
-    // 小さい文字や濁点追加するか検討
-    private static final String[] HIRAGANA = {
-            "あ", "い", "う", "え", "お",
-            "か", "き", "く", "け", "こ",
-            "さ", "し", "す", "せ", "そ",
-            "た", "ち", "つ", "て", "と",
-            "な", "に", "ぬ", "ね", "の",
-            "は", "ひ", "ふ", "へ", "ほ",
-            "ま", "み", "む", "め", "も",
-            "や", "ゆ", "よ",
-            "ら", "り", "る", "れ", "ろ",
-            "わ", "を", "ん"
-    };
+    private static final int MAX_WORD_GENERATION_ATTEMPTS = 100;
 
-    public GameController(int hand) {
-        this.hand = hand;
-        this.random = new SecureRandom();
+    private final Scanner scanner;
+    private final WordGenerator wordGenerator;
+    private final DictionaryRepository dictionaryRepository;
+    private final SuffixVowelMatcher suffixVowelMatcher;
+    private final RhymeJudge rhymeJudge;
+
+    public GameController(Scanner scanner) {
+        this.scanner = scanner;
         this.wordGenerator = new WordGenerator();
-
+        this.dictionaryRepository = new DictionaryRepository();
+        this.suffixVowelMatcher =
+                new SuffixVowelMatcher(
+                        new VowelSequenceConverter()
+                );
+        this.rhymeJudge = new RhymeJudge();
     }
 
     public void gameStart(int mode) {
+        int selectedMode = mode;
 
-        if (mode == 1) {
-            System.out.println("1人でゲームを開始します。\n");
-            gameModeSingle(mode);
+        while (true) {
+            if (selectedMode == 1) {
+                System.out.println("1人でゲームを開始します。\n");
+                gameModeSingle(selectedMode);
+                selectedMode = selectGameMode();
 
-        } else if (mode == 2) {
-            System.out.println("オンライン対戦モードを開始します。\n");
+            } else if (selectedMode == 2) {
+                System.out.println("オンライン対戦モードを開始します。\n");
 
-            OnlineGame onlineGame = new OnlineGame(hand);
-            onlineGame.start();
+                OnlineGame onlineGame = new OnlineGame(scanner);
+                onlineGame.start();
+                return;
 
-        } else {
-            System.out.println("ゲームモードが不正です。");
+            } else {
+                System.out.println("ゲームモードが不正です。");
+                selectedMode = selectGameMode();
+            }
         }
-
     }
 
     public void gameModeSingle(int mode) {
-        System.out.println("手札を配ります。\n");
-        for (int i = 0; i < hand; i++) {
-            int index = random.nextInt(HIRAGANA.length);
-            System.out.print(HIRAGANA[index] + ",");
+        while (true) {
+            try {
+                RhymeAnswer theme = generateRhymeAnswer();
+
+                System.out.println("お題：「" + theme.word() + "」");
+                System.out.println("読み：「" + theme.reading() + "」");
+                System.out.print("回答する単語を入力してください。\n\n>");
+                String playerWord = scanner.nextLine();
+
+                Optional<RhymeAnswer> dictionaryPlayerAnswer =
+                        findBestPlayerAnswer(theme, playerWord);
+
+                RhymeAnswer playerAnswer = dictionaryPlayerAnswer.orElse(
+                        new RhymeAnswer(playerWord, "")
+                );
+
+                boolean playerValid = dictionaryPlayerAnswer.isPresent();
+
+                RhymeAnswer computerAnswer;
+
+                do {
+                    computerAnswer = generateRhymeAnswer();
+                } while (JapaneseTextNormalizer.normalizeSurface(theme.word()).equals(
+                        JapaneseTextNormalizer.normalizeSurface(computerAnswer.word())));
+
+                RhymeResult result = rhymeJudge.judge(
+                        theme, playerAnswer, playerValid, computerAnswer, true);
+
+                System.out.println("\n=== 判定結果 ===");
+                System.out.println("コンピューターの回答：「" + computerAnswer.word() + "」");
+                System.out.println("コンピューターの回答の読み：「" + computerAnswer.reading() + "」");
+
+                if (!result.player1Valid()) {
+                    System.out.println(
+                            "あなたの回答は無効です。"
+                                    + "辞書に存在しない、韻判定に対応していない、"
+                                    + "またはお題と同じ単語です。"
+                    );
+                } else {
+                    System.out.println("あなたの回答：「" + playerAnswer.word() + "」");
+                    System.out.println("あなたの回答の読み：「" + playerAnswer.reading() + "」");
+                }
+
+                System.out.println("あなたの母音一致数：" + result.player1MatchCount());
+                System.out.println("コンピューターの母音一致数：" + result.player2MatchCount());
+                System.out.println("あなたが受けるダメージ：" + result.damageToPlayer1());
+                System.out.println("コンピューターが受けるダメージ：" + result.damageToPlayer2());
+
+            } catch (SQLException e) {
+                System.out.println("辞書データベースの参照に失敗しました。");
+                e.printStackTrace();
+                return;
+
+            } catch (IllegalStateException e) {
+                System.out.println(e.getMessage());
+                return;
+            }
+
+            int nextAction = selectNextAction();
+
+            if (nextAction == 2) {
+                return;
+            }
+
+            System.out.println();
         }
-        String word = wordGenerator.getRandomWord();
-
-        System.out.println("\n\nお題：「" + word + "」です。手札から韻を考えてください。");
-
     }
 
+    private Optional<RhymeAnswer> findBestPlayerAnswer(
+            RhymeAnswer theme,
+            String playerWord) throws SQLException {
+
+        String normalizedPlayerWord =
+                JapaneseTextNormalizer.normalizeSurface(playerWord);
+
+        if (normalizedPlayerWord.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return dictionaryRepository.findReadings(normalizedPlayerWord).stream()
+                .map(reading -> new RhymeAnswer(
+                        normalizedPlayerWord,
+                        reading
+                ))
+                .filter(answer ->
+                        suffixVowelMatcher.isSupportedReading(answer.reading()))
+                .max(Comparator.comparingInt(answer ->
+                        suffixVowelMatcher.countMatches(
+                                theme.reading(),
+                                answer.reading()
+                        )
+                ));
+    }
+
+    private int selectNextAction() {
+        while (true) {
+            System.out.println("\n次のお題へ:1");
+            System.out.println("モード選択へ:2");
+            System.out.print(">");
+
+            String input = scanner.nextLine();
+
+            if ("1".equals(input)) {
+                return 1;
+            }
+
+            if ("2".equals(input)) {
+                return 2;
+            }
+
+            System.out.println("1または2を入力してください。");
+        }
+    }
+
+    private int selectGameMode() {
+        while (true) {
+            System.out.println("\nゲームのモードを入力してください");
+            System.out.println("1: 1人プレイ");
+            System.out.println("2: オンライン対戦");
+            System.out.print(">");
+
+            String input = scanner.nextLine();
+
+            if ("1".equals(input)) {
+                return 1;
+            }
+
+            if ("2".equals(input)) {
+                return 2;
+            }
+
+            System.out.println("1または2を入力してください。");
+        }
+    }
+
+    private RhymeAnswer generateRhymeAnswer()
+            throws SQLException {
+
+        for (int attempt = 0;
+                attempt < MAX_WORD_GENERATION_ATTEMPTS;
+                attempt++) {
+
+            String word = wordGenerator.getRandomWord();
+            List<String> readings = dictionaryRepository.findReadings(word);
+
+            for (String reading : readings) {
+                if (suffixVowelMatcher.isSupportedReading(reading)) {
+                    return new RhymeAnswer(word, reading);
+                }
+            }
+        }
+
+        throw new IllegalStateException(
+                "韻判定に対応したお題を取得できませんでした。"
+        );
+    }
 }

@@ -8,6 +8,10 @@ D:\CreateGame\src\main\java\com\game\JmDictImporter.java
 D:\CreateGame\src\main\java\com\game\JmDictImportMain.java
 D:\CreateGame\src\main\java\com\game\Main.java
 D:\CreateGame\src\main\java\com\game\NetworkManager.java
+D:\CreateGame\src\main\java\com\game\OnlineGame.java
+D:\CreateGame\src\main\java\com\game\OnlineGameClient.java
+D:\CreateGame\src\main\java\com\game\OnlineGameServer.java
+D:\CreateGame\src\main\java\com\game\OnlineGameSession.java
 D:\CreateGame\src\main\java\com\game\Player.java
 D:\CreateGame\src\main\java\com\game\RhymeAnswer.java
 D:\CreateGame\src\main\java\com\game\RhymeJudge.java

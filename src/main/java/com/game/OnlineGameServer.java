@@ -8,12 +8,6 @@ public class OnlineGameServer {
 
     private static final int PORT = 5000;
 
-    private final int hand;
-
-    public OnlineGameServer(int hand) {
-        this.hand = hand;
-    }
-
     public void start() {
 
         System.out.println("サーバーを起動します...");
