@@ -3,39 +3,19 @@ package com.game;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.security.SecureRandom;
-import java.util.Random;
 
 public class OnlineGameSession {
-
-    private final int hand;
 
     private final Socket player1;
     private final Socket player2;
 
-    private final Random random = new SecureRandom();
-
-    private final WordGenerator wordGenerator = new WordGenerator();
-
-    private static final String[] HIRAGANA = {
-            "あ", "い", "う", "え", "お",
-            "か", "き", "く", "け", "こ",
-            "さ", "し", "す", "せ", "そ",
-            "た", "ち", "つ", "て", "と",
-            "な", "に", "ぬ", "ね", "の",
-            "は", "ひ", "ふ", "へ", "ほ",
-            "ま", "み", "む", "め", "も",
-            "や", "ゆ", "よ",
-            "ら", "り", "る", "れ", "ろ",
-            "わ", "を", "ん"
-    };
+    private final WordGenerator wordGenerator =
+            new WordGenerator();
 
     public OnlineGameSession(
-            int hand,
             Socket player1,
             Socket player2
     ) {
-        this.hand = hand;
         this.player1 = player1;
         this.player2 = player2;
     }
@@ -43,7 +23,6 @@ public class OnlineGameSession {
     public void start() {
 
         try {
-
             PrintWriter out1 =
                     new PrintWriter(
                             player1.getOutputStream(),
@@ -56,39 +35,27 @@ public class OnlineGameSession {
                             true
                     );
 
-            String word = wordGenerator.getRandomWord();
+            String word =
+                    wordGenerator.getRandomWord();
 
-            String cards = createHand();
+            out1.println(
+                    "=== ゲーム開始 ==="
+            );
 
-            out1.println("=== ゲーム開始 ===");
-            out1.println("お題：" + word);
-            out1.println("あなたの手札：" + cards);
+            out1.println(
+                    "お題：" + word
+            );
 
-            out2.println("=== ゲーム開始 ===");
-            out2.println("お題：" + word);
-            out2.println("あなたの手札：" + cards);
+            out2.println(
+                    "=== ゲーム開始 ==="
+            );
+
+            out2.println(
+                    "お題：" + word
+            );
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private String createHand() {
-
-        StringBuilder result = new StringBuilder();
-
-        for (int i = 0; i < hand; i++) {
-
-            int index =
-                    random.nextInt(HIRAGANA.length);
-
-            result.append(HIRAGANA[index]);
-
-            if (i < hand - 1) {
-                result.append(", ");
-            }
-        }
-
-        return result.toString();
     }
 }

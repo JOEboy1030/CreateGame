@@ -25,51 +25,141 @@ public class DictionaryRepository {
             ORDER BY reading
             """;
 
-    public Optional<DictionaryWord> find(String surface, String reading) throws SQLException {
+    private static final String FIND_RANDOM_SQL = """
+            SELECT surface, reading
+            FROM dictionary_words
+            ORDER BY RANDOM()
+            LIMIT 1
+            """;
 
-        String normalizedSurface = JapaneseTextNormalizer.normalizeSurface(surface);
+    public Optional<DictionaryWord> find(
+            String surface,
+            String reading
+    ) throws SQLException {
 
-        String normalizedReading = JapaneseTextNormalizer.normalizeReading(reading);
+        String normalizedSurface =
+                JapaneseTextNormalizer.normalizeSurface(
+                        surface
+                );
+
+        String normalizedReading =
+                JapaneseTextNormalizer.normalizeReading(
+                        reading
+                );
 
         try (
-                Connection connection = DatabaseManager.getConnection();
-                PreparedStatement statement = connection.prepareStatement(FIND_SQL)) {
-            statement.setString(1, normalizedSurface);
+                Connection connection =
+                        DatabaseManager.getConnection();
 
-            statement.setString(2, normalizedReading);
+                PreparedStatement statement =
+                        connection.prepareStatement(
+                                FIND_SQL
+                        )
+        ) {
+            statement.setString(
+                    1,
+                    normalizedSurface
+            );
 
-            try (ResultSet resultSet = statement.executeQuery()) {
+            statement.setString(
+                    2,
+                    normalizedReading
+            );
 
+            try (
+                    ResultSet resultSet =
+                            statement.executeQuery()
+            ) {
                 if (!resultSet.next()) {
                     return Optional.empty();
                 }
 
                 return Optional.of(
                         new DictionaryWord(
-                                resultSet.getString("surface"),
-                                resultSet.getString("reading")));
+                                resultSet.getString(
+                                        "surface"
+                                ),
+                                resultSet.getString(
+                                        "reading"
+                                )
+                        )
+                );
             }
         }
     }
 
-    public List<String> findReadings(String surface) throws SQLException {
+    public List<String> findReadings(
+            String surface
+    ) throws SQLException {
 
-        String normalizedSurface = JapaneseTextNormalizer.normalizeSurface(surface);
+        String normalizedSurface =
+                JapaneseTextNormalizer.normalizeSurface(
+                        surface
+                );
 
-        List<String> readings = new ArrayList<>();
+        List<String> readings =
+                new ArrayList<>();
 
-        try (Connection connection = DatabaseManager.getConnection();
-                PreparedStatement statement = connection.prepareStatement(FIND_READINGS_SQL)) {
-            statement.setString(1, normalizedSurface);
+        try (
+                Connection connection =
+                        DatabaseManager.getConnection();
 
-            try (ResultSet resultSet = statement.executeQuery()) {
+                PreparedStatement statement =
+                        connection.prepareStatement(
+                                FIND_READINGS_SQL
+                        )
+        ) {
+            statement.setString(
+                    1,
+                    normalizedSurface
+            );
 
+            try (
+                    ResultSet resultSet =
+                            statement.executeQuery()
+            ) {
                 while (resultSet.next()) {
-                    readings.add(resultSet.getString("reading"));
+                    readings.add(
+                            resultSet.getString(
+                                    "reading"
+                            )
+                    );
                 }
             }
         }
 
         return readings;
+    }
+
+    public Optional<DictionaryWord> findRandom()
+            throws SQLException {
+
+        try (
+                Connection connection =
+                        DatabaseManager.getConnection();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(
+                                FIND_RANDOM_SQL
+                        );
+
+                ResultSet resultSet =
+                        statement.executeQuery()
+        ) {
+            if (!resultSet.next()) {
+                return Optional.empty();
+            }
+
+            return Optional.of(
+                    new DictionaryWord(
+                            resultSet.getString(
+                                    "surface"
+                            ),
+                            resultSet.getString(
+                                    "reading"
+                            )
+                    )
+            );
+        }
     }
 }

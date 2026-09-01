@@ -4,11 +4,10 @@ import java.util.Scanner;
 
 public class OnlineGame {
 
-    private final int hand;
-    private final Scanner scanner = new Scanner(System.in);
+    private final Scanner scanner;
 
-    public OnlineGame(int hand) {
-        this.hand = hand;
+    public OnlineGame(Scanner scanner) {
+        this.scanner = scanner;
     }
 
     public void start() {
@@ -29,7 +28,7 @@ public class OnlineGame {
 
         if (mode == 1) {
 
-            OnlineGameServer server = new OnlineGameServer(hand);
+            OnlineGameServer server = new OnlineGameServer();
             server.start();
 
         } else if (mode == 2) {
