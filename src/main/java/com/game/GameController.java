@@ -13,7 +13,6 @@ public class GameController {
     private final Scanner scanner;
     private final WordGenerator wordGenerator;
     private final DictionaryRepository dictionaryRepository;
-    private final WordValidator wordValidator;
     private final SuffixVowelMatcher suffixVowelMatcher;
     private final RhymeJudge rhymeJudge;
 
@@ -21,7 +20,6 @@ public class GameController {
         this.scanner = scanner;
         this.wordGenerator = new WordGenerator();
         this.dictionaryRepository = new DictionaryRepository();
-        this.wordValidator = new WordValidator(dictionaryRepository);
         this.suffixVowelMatcher =
                 new SuffixVowelMatcher(
                         new VowelSequenceConverter()
@@ -125,7 +123,18 @@ public class GameController {
             RhymeAnswer theme,
             String playerWord) throws SQLException {
 
-        return wordValidator.findAnswers(playerWord).stream()
+        String normalizedPlayerWord =
+                JapaneseTextNormalizer.normalizeSurface(playerWord);
+
+        if (normalizedPlayerWord.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return dictionaryRepository.findReadings(normalizedPlayerWord).stream()
+                .map(reading -> new RhymeAnswer(
+                        normalizedPlayerWord,
+                        reading
+                ))
                 .filter(answer ->
                         suffixVowelMatcher.isSupportedReading(answer.reading()))
                 .max(Comparator.comparingInt(answer ->
