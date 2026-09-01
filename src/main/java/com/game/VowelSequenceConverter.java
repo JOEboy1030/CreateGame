@@ -3,25 +3,28 @@ package com.game;
 public class VowelSequenceConverter {
 
     private static final String SUPPORTED_KANA = "あいうえお"
-            + "かきくけこ"
-            + "さしすせそ"
-            + "たちつてと"
+            + "かきくけこがぎぐげご"
+            + "さしすせそざじずぜぞ"
+            + "たちつてとだぢづでど"
             + "なにぬねの"
-            + "はひふへほ"
+            + "はひふへほばびぶべぼぱぴぷぺぽ"
             + "まみむめも"
             + "やゆよ"
             + "らりるれろ"
-            + "わをん";
+            + "わをんゔゐゑ"
+            + "ぁぃぅぇぉゃゅょゎっー";
 
-    private static final String A_KANA = "あかさたなはまやらわ";
+    private static final String SMALL_KANA = "ぁぃぅぇぉゃゅょゎ";
 
-    private static final String I_KANA = "いきしちにひみり";
+    private static final String A_KANA = "あかがさざただなはばぱまやらわぁゃゎ";
 
-    private static final String U_KANA = "うくすつぬふむゆる";
+    private static final String I_KANA = "いきぎしじちぢにひびぴみりゐぃ";
 
-    private static final String E_KANA = "えけせてねへめれ";
+    private static final String U_KANA = "うくぐすずつづぬふぶぷむゆるゔぅゅ";
 
-    private static final String O_KANA = "おこそとのほもよろを";
+    private static final String E_KANA = "えけげせぜてでねへべぺめれゑぇ";
+
+    private static final String O_KANA = "おこござぞとどのほぼぽもよろをぉょ";
 
     public String convert(String reading) {
         String normalizedReading = JapaneseTextNormalizer.normalizeReading(reading);
@@ -33,11 +36,23 @@ public class VowelSequenceConverter {
         StringBuilder vowels = new StringBuilder();
 
         for (int index = 0; index < normalizedReading.length(); index++) {
-
             char kana = normalizedReading.charAt(index);
 
-            if (kana == 'ん') {
+            if (kana == 'ん' || kana == 'っ') {
                 continue;
+            }
+
+            if (kana == 'ー') {
+                if (vowels.isEmpty()) {
+                    throw new IllegalArgumentException("長音記号の前に母音がありません。");
+                }
+
+                vowels.append(vowels.charAt(vowels.length() - 1));
+                continue;
+            }
+
+            if (SMALL_KANA.indexOf(kana) >= 0 && !vowels.isEmpty()) {
+                vowels.deleteCharAt(vowels.length() - 1);
             }
 
             vowels.append(findVowel(kana));
@@ -53,16 +68,25 @@ public class VowelSequenceConverter {
             return false;
         }
 
-        for (int index = 0; index < normalizedReading.length(); index++) {
+        boolean hasVowel = false;
 
+        for (int index = 0; index < normalizedReading.length(); index++) {
             char kana = normalizedReading.charAt(index);
 
             if (SUPPORTED_KANA.indexOf(kana) < 0) {
                 return false;
             }
+
+            if (kana == 'ー' && index == 0) {
+                return false;
+            }
+
+            if (kana != 'ん' && kana != 'っ' && kana != 'ー') {
+                hasVowel = true;
+            }
         }
 
-        return true;
+        return hasVowel;
     }
 
     private char findVowel(char kana) {

@@ -9,8 +9,7 @@ public class OnlineGameSession {
     private final Socket player1;
     private final Socket player2;
 
-    private final WordGenerator wordGenerator =
-            new WordGenerator();
+    private final WordGenerator wordGenerator = new WordGenerator();
 
     public OnlineGameSession(
             Socket player1,
@@ -21,7 +20,6 @@ public class OnlineGameSession {
     }
 
     public void start() {
-
         try {
             PrintWriter out1 =
                     new PrintWriter(
@@ -35,24 +33,13 @@ public class OnlineGameSession {
                             true
                     );
 
-            String word =
-                    wordGenerator.getRandomWord();
+            String word = wordGenerator.getRandomWord();
 
-            out1.println(
-                    "=== ゲーム開始 ==="
-            );
+            out1.println("=== ゲーム開始 ===");
+            out1.println("お題：" + word);
 
-            out1.println(
-                    "お題：" + word
-            );
-
-            out2.println(
-                    "=== ゲーム開始 ==="
-            );
-
-            out2.println(
-                    "お題：" + word
-            );
+            out2.println("=== ゲーム開始 ===");
+            out2.println("お題：" + word);
 
         } catch (IOException e) {
             e.printStackTrace();
